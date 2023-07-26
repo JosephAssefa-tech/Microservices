@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PlatformService.Data;
 using PlatformService.Dtos;
+using PlatformService.Models;
 
 namespace PlatformService.Controllers
 {
@@ -37,6 +38,41 @@ namespace PlatformService.Controllers
 
             return NotFound();
         }
+
+        [HttpPost]
+        public async Task<ActionResult<PlatformReadDto>> CreatePlatform(PlatformCreateDto platformCreateDto)
+        {
+            var platformModel = _mapper.Map<Platform>(platformCreateDto);
+            _repo.CreatePlatform(platformModel);
+            _repo.SaveChanges();
+
+            var platformReadDto = _mapper.Map<PlatformReadDto>(platformModel);
+            return CreatedAtRoute(nameof(GetPlatformById), new { Id = platformReadDto.Id }, platformReadDto);
+
+            // Send Sync Message
+            //try
+            //{
+            //    await _commandDataClient.SendPlatformToCommand(platformReadDto);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"--> Could not send synchronously: {ex.Message}");
+            //}
+
+            ////Send Async Message
+            //try
+            //{
+            //    var platformPublishedDto = _mapper.Map<PlatformPublishedDto>(platformReadDto);
+            //    platformPublishedDto.Event = "Platform_Published";
+            //    _messageBusClient.PublishNewPlatform(platformPublishedDto);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"--> Could not send asynchronously: {ex.Message}");
+        }
+
+      
+        
 
     }
 }
